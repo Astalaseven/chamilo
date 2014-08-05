@@ -40,3 +40,5 @@ You only have to put your credentials in `dist/credentials.ini` and double clic 
 and [py2exe](http://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe/download)
 (direct links)
 * `python setup.py py2exe`
+* Download [UPX](http://sourceforge.net/p/upx/wiki/Home/)
+* `upx --ultra-brute dist\chamilo.exe` to reduce the binary size (3.764 Ko -> 2.241 Ko, 59.53%)
