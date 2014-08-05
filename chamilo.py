@@ -60,15 +60,29 @@ def save_file(path, url):
 
     if not os.path.exists(name):
         print('"%s"...' % (name)),
-        with open(name, 'w') as f:
+        with open(name, 'wb') as f:
             f.write(s.get(url).content)
         print(' saved')
 
 
 if __name__ == '__main__':
 
+    from sys import exit, platform
+    import ConfigParser
+    
+    try:
+        config = ConfigParser.RawConfigParser()
+        config.read('credentials.ini')
+
+        USERNAME = config.get('chamilo', 'username')
+        PASSWORD = config.get('chamilo', 'password')
+    except:
+        pass
+
     if USERNAME == 'esi_id' or PASSWORD == 'esi_pass':
         print('Please enter your credentials. Quitting.')
+        if platform == 'win32':
+            raw_input('Press Enter to close')
         exit()
 
     authenticate(USERNAME, PASSWORD, s)
@@ -79,3 +93,7 @@ if __name__ == '__main__':
     for course in courses:
         print('Downloading files for %s' % course.find('a')['href'].split('/')[4])
         download_course(course)
+
+    if platform == 'win32':
+        raw_input('Press Enter to close')
+ 
