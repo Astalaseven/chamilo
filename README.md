@@ -19,9 +19,24 @@ You first need to edit your credentials:
 USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
 ```
-	
-then you can use it:
-
+or into `credentials.ini`:
 ```
-python chamilo.py
-```	
+[chamilo]
+username = esi_id
+password = esi_pass
+```
+
+Then you can use it: `python chamilo.py`.
+
+## Windows
+
+A build is available in the `dist` folder.
+
+You only have to put your credentials in `dist/credentials.ini` and double clic on `dist/chamilo`.
+
+### Rebuilding on Windows
+
+* Install [python2.7](https://www.python.org/ftp/python/2.7.8/python-2.7.8.msi)
+and [py2exe](http://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe/download)
+(direct links)
+* `python setup.py py2exe`
