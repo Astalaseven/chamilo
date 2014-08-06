@@ -7,19 +7,19 @@ from BeautifulSoup import BeautifulSoup
 
 USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
-CHAMI_URL = 'http://elearning.esi.heb.be'
+CHAMI_URL = 'https://elearning.esi.heb.be'
 s = requests.Session()
 
 
 def authenticate(username, password, s):
     payload = {'login': username, 'password': password}
-    r = s.post(CHAMI_URL + '/index.php', data=payload)
+    r = s.post(CHAMI_URL + '/index.php', data=payload, verify=False)
 
 
 def get_courses(s):
     url = CHAMI_URL + '/user_portal.php'
 
-    soup = BeautifulSoup(s.get(url).text)
+    soup = BeautifulSoup(s.get(url, verify=False).text)
     courses = soup.findAll('div', attrs={'class': 'userportal-course-item'})
 
     return courses
@@ -29,11 +29,11 @@ def download_course(course_info):
     url = course_info.find('a')['href']
     name = url.split('/')[4]
 
-    soup = BeautifulSoup(s.get(url).content)
+    soup = BeautifulSoup(s.get(url, verify=False).content)
     url = soup.find('a', attrs={'title': 'Documents'})
     if url:
         document_url = CHAMI_URL + url['href']
-        soup = BeautifulSoup(s.get(document_url).content)
+        soup = BeautifulSoup(s.get(document_url, verify=False).content)
 
         folders = [x['value'] for x in soup.findAll('option')]
         for folder in folders:
@@ -42,7 +42,7 @@ def download_course(course_info):
 
 def save_folders(name, url):
     url = CHAMI_URL + '/main/document/document.php?cidReq=' + name + '&curdirpath=' + url
-    soup = BeautifulSoup(s.get(url).content)
+    soup = BeautifulSoup(s.get(url, verify=False).content)
 
     files = soup.findAll('a', attrs={'style': 'float:right'})
     for file in files:
@@ -61,7 +61,7 @@ def save_file(path, url):
     if not os.path.exists(name):
         print('"%s"...' % (name)),
         with open(name, 'wb') as f:
-            f.write(s.get(url).content)
+            f.write(s.get(url, verify=False).content)
         print(' saved')
 
 

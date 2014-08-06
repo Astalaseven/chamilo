@@ -41,4 +41,4 @@ and [py2exe](http://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/py2exe-0.
 (direct links)
 * `python setup.py py2exe`
 * Download [UPX](http://sourceforge.net/p/upx/wiki/Home/)
-* `upx --ultra-brute dist\chamilo.exe` to reduce the binary size (3.764 Ko -> 2.241 Ko, 59.53%)
+* `upx --ultra-brute dist\chamilo.exe` to reduce the binary size (4.329 Ko -> 2.807 Ko, 64.83%)
