@@ -31,7 +31,7 @@ Then you can use it: `python chamilo.py`.
 
 ### Update
 
-To only update courses with the ![new document icon](https://elearning.esi.heb.be/main/img/folder_document.gif "Folder document icon"), use `python chamilo.py update`.
+To only update courses with the ![new document](http://elearning.esi.heb.be/main/img/folder_document.gif "Folder document icon") icon, use `python chamilo.py update`.
 
 ## Windows
 
