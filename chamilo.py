@@ -8,6 +8,7 @@ from BeautifulSoup import BeautifulSoup
 USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
 CHAMI_URL = 'https://elearning.esi.heb.be'
+CHECK_SIZE = False
 s = requests.Session()
 
 
@@ -49,7 +50,7 @@ def save_folders(name, url):
         save_file(name, CHAMI_URL + file['href'])
 
 
-def save_file(path, url):
+def save_file(path, url, check=CHECK_SIZE):
     name = '/'.join(url.split('%2F')[1:])
     name = path + '/' + name
     path = '/'.join(name.split('/')[:-1])
@@ -58,11 +59,24 @@ def save_file(path, url):
         print('"%s" created' % (path))
         os.makedirs(path)
 
-    if not os.path.exists(name):
+    same_filesize = check_size(url, name) if check else True
+
+    if not os.path.exists(name) or not same_filesize:
         print('"%s"...' % (name)),
         with open(name, 'wb') as f:
             f.write(s.get(url, verify=False).content)
         print(' saved')
+
+
+def check_size(url, name):
+    chami_filesize = int(s.head(url, verify=False).headers['content-length'])
+    local_filesize = os.path.getsize(name) if os.path.exists(name) else 0
+    
+    # ugly hack due to false content length for empty file
+    if chami_filesize == 20:
+        chami_filesize = 0
+    
+    return chami_filesize == local_filesize
 
 
 if __name__ == '__main__':
@@ -84,6 +98,10 @@ if __name__ == '__main__':
         if platform == 'win32':
             raw_input('Press Enter to close')
         exit()
+        
+    if 'check' in argv:
+        print('Checking size while downloading (slower)')
+        CHECK_SIZE = True
 
     authenticate(USERNAME, PASSWORD, s)
 
@@ -93,14 +111,14 @@ if __name__ == '__main__':
     for course in courses:
         name = course.find('a')['href'].split('/')[4]
         
-        if len(argv) > 1 and argv[1] == 'update':
+        if 'update' in argv:
             if '-- Documents --' in str(course):
                 print('Updating files for %s' % name)
-                #download_course(course)
+                download_course(course)
 
         else:
             print('Downloading files for %s' % name)
-            #download_course(course)
+            download_course(course)
 
     if platform == 'win32':
         raw_input('Press Enter to close')
