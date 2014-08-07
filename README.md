@@ -2,7 +2,8 @@ chamilo
 =======
 
 Script to download all files from courses on Chamilo elearning platform.
-Tested on http://elearning.esi.heb.be, Chamilo platform for [ESI](http://www.heb.be/esi/).
+
+Tested on https://elearning.esi.heb.be, Chamilo platform for [ESI](http://www.heb.be/esi/).
 
 ## Installation
 
@@ -27,6 +28,10 @@ password = esi_pass
 ```
 
 Then you can use it: `python chamilo.py`.
+
+### Update
+
+To only update courses with the ![new document icon](https://elearning.esi.heb.be/main/img/folder_document.gif "Folder document icon"), use `python chamilo.py update`.
 
 ## Windows
 
