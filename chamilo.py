@@ -67,9 +67,9 @@ def save_file(path, url):
 
 if __name__ == '__main__':
 
-    from sys import exit, platform
+    from sys import argv, exit, platform
     import ConfigParser
-    
+
     try:
         config = ConfigParser.RawConfigParser()
         config.read('credentials.ini')
@@ -89,10 +89,18 @@ if __name__ == '__main__':
 
     print('Checking courses...')
     courses = get_courses(s)
-
+ 
     for course in courses:
-        print('Downloading files for %s' % course.find('a')['href'].split('/')[4])
-        download_course(course)
+        name = course.find('a')['href'].split('/')[4]
+        
+        if len(argv) > 1 and argv[1] == 'update':
+            if '-- Documents --' in str(course):
+                print('Updating files for %s' % name)
+                #download_course(course)
+
+        else:
+            print('Downloading files for %s' % name)
+            #download_course(course)
 
     if platform == 'win32':
         raw_input('Press Enter to close')
