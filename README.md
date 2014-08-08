@@ -33,6 +33,10 @@ Then you can use it: `python chamilo.py`.
 
 To only update courses with the ![new document](http://elearning.esi.heb.be/main/img/folder_document.gif "Folder document icon") icon, use `python chamilo.py update`.
 
+### Check filesize
+
+To check if local files have the correct size, use `python chamilo.py check` (slower).
+
 ## Windows
 
 A build is available in the `dist` folder.

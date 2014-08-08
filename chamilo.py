@@ -14,7 +14,7 @@ s = requests.Session()
 
 def authenticate(username, password, s):
     payload = {'login': username, 'password': password}
-    r = s.post(CHAMI_URL + '/index.php', data=payload, verify=False)
+    s.post(CHAMI_URL + '/index.php', data=payload, verify=False)
 
 
 def get_courses(s):
