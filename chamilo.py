@@ -12,7 +12,7 @@ CHECK_SIZE = False
 s = requests.Session()
 
 
-def authenticate(username, password, s):
+def authenticate(username, password):
     url = '%s/%s' % (CHAMI_URL, 'index.php')
     payload = {'login': username, 'password': password}
 
@@ -23,7 +23,7 @@ def soup_content(url):
     return BeautifulSoup(s.get(url, verify=False).content)
 
 
-def get_courses(s):
+def get_courses():
     url = '%s/%s' % (CHAMI_URL, 'user_portal.php')
 
     soup = soup_content(url)
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         print('Checking size while downloading (slower)')
         CHECK_SIZE = True
 
-    auth = authenticate(USERNAME, PASSWORD, s)
+    auth = authenticate(USERNAME, PASSWORD)
     if 'user_password_incorrect' in auth.url:
         print('Could not login, check user & password')
         if platform == 'win32':
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         exit()
 
     print('Checking courses...')
-    courses = get_courses(s)
+    courses = get_courses()
  
     for course in courses:
         name = course.find('a')['href'].split('/')[4]
