@@ -13,14 +13,20 @@ s = requests.Session()
 
 
 def authenticate(username, password, s):
+    url = '%s/%s' % (CHAMI_URL, 'index.php')
     payload = {'login': username, 'password': password}
-    s.post(CHAMI_URL + '/index.php', data=payload, verify=False)
+
+    return s.post(url, data=payload, verify=False)
+
+
+def soup_content(url):
+    return BeautifulSoup(s.get(url, verify=False).content)
 
 
 def get_courses(s):
-    url = CHAMI_URL + '/user_portal.php'
+    url = '%s/%s' % (CHAMI_URL, 'user_portal.php')
 
-    soup = BeautifulSoup(s.get(url, verify=False).text)
+    soup = soup_content(url)
     courses = soup.findAll('div', attrs={'class': 'userportal-course-item'})
 
     return courses
@@ -30,10 +36,10 @@ def download_course(course_info):
     url = course_info.find('a')['href']
     name = url.split('/')[4]
 
-    soup = BeautifulSoup(s.get(url, verify=False).content)
+    soup = soup_content(url)
     url = soup.find('a', attrs={'title': 'Documents'})
     if url:
-        document_url = CHAMI_URL + url['href']
+        document_url = '%s%s' % (CHAMI_URL, url['href'])
         soup = BeautifulSoup(s.get(document_url, verify=False).content)
 
         folders = [x['value'] for x in soup.findAll('option')]
@@ -42,17 +48,18 @@ def download_course(course_info):
 
 
 def save_folders(name, url):
-    url = CHAMI_URL + '/main/document/document.php?cidReq=' + name + '&curdirpath=' + url
-    soup = BeautifulSoup(s.get(url, verify=False).content)
+    url = '%s/main/document/document.php?cidReq=%s&curdirpath=%s' % (CHAMI_URL, name, url)
+    soup = soup_content(url)
 
     files = soup.findAll('a', attrs={'style': 'float:right'})
     for file in files:
-        save_file(name, CHAMI_URL + file['href'])
+        url = '%s%s' % (CHAMI_URL, file['href'])
+        save_file(name, url)
 
 
 def save_file(path, url, check=CHECK_SIZE):
     name = '/'.join(url.split('%2F')[1:])
-    name = path + '/' + name
+    name = '%s/%s' % (path, name)
     path = '/'.join(name.split('/')[:-1])
 
     if not os.path.exists(path):
@@ -88,8 +95,8 @@ if __name__ == '__main__':
         config = ConfigParser.RawConfigParser()
         config.read('credentials.ini')
 
-        USERNAME = config.get('chamilo', 'username')
-        PASSWORD = config.get('chamilo', 'password')
+        USERNAME = config.get('chamilo', 'username') if USERNAME == 'esi_id' else USERNAME
+        PASSWORD = config.get('chamilo', 'password') if PASSWORD == 'esi_pass' else PASSWORD
     except:
         pass
 
@@ -103,7 +110,12 @@ if __name__ == '__main__':
         print('Checking size while downloading (slower)')
         CHECK_SIZE = True
 
-    authenticate(USERNAME, PASSWORD, s)
+    auth = authenticate(USERNAME, PASSWORD, s)
+    if 'user_password_incorrect' in auth.url:
+        print('Could not login, check user & password')
+        if platform == 'win32':
+            raw_input('Press Enter to close')
+        exit()
 
     print('Checking courses...')
     courses = get_courses(s)
