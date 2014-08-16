@@ -9,6 +9,7 @@ USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
 CHAMI_URL = 'https://elearning.esi.heb.be'
 CHECK_SIZE = False
+
 s = requests.Session()
 
 
