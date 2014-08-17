@@ -70,10 +70,10 @@ def save_file(path, url, check=CHECK_SIZE):
     same_filesize = check_size(url, name) if check else True
 
     if not os.path.exists(name) or not same_filesize:
-        print('"%s"...' % (name)),
+        print('"%s"... ' % (name)),
         with open(name, 'wb') as f:
             f.write(s.get(url, verify=False).content)
-        print(' saved')
+        print('saved')
 
 
 def check_size(url, name):
@@ -92,6 +92,11 @@ if __name__ == '__main__':
     from sys import argv, exit, platform
     import ConfigParser
 
+    def _exit():
+        if platform == 'win32':
+            raw_input('Press Enter to close')
+        exit()
+
     try:
         config = ConfigParser.RawConfigParser()
         config.read('credentials.ini')
@@ -103,9 +108,7 @@ if __name__ == '__main__':
 
     if USERNAME == 'esi_id' or PASSWORD == 'esi_pass':
         print('Please enter your credentials. Quitting.')
-        if platform == 'win32':
-            raw_input('Press Enter to close')
-        exit()
+        _exit()
         
     if 'check' in argv:
         print('Checking size while downloading (slower)')
@@ -113,10 +116,8 @@ if __name__ == '__main__':
 
     auth = authenticate(USERNAME, PASSWORD)
     if 'user_password_incorrect' in auth.url:
-        print('Could not login, check user & password')
-        if platform == 'win32':
-            raw_input('Press Enter to close')
-        exit()
+        print('Could not login, check user & password.')
+        _exit()
 
     print('Checking courses...')
     courses = get_courses()
