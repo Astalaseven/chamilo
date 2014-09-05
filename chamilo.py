@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import logging
 import requests
 from BeautifulSoup import BeautifulSoup
 
@@ -11,6 +12,15 @@ CHAMI_URL = 'https://elearning.esi.heb.be'
 CHECK_SIZE = False
 
 s = requests.Session()
+
+logging.basicConfig(filename='chamilo.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+logging.getLogger('').addHandler(console)
+
+log = logging.getLogger(__name__)
 
 
 def authenticate(username, password):
@@ -64,16 +74,15 @@ def save_file(path, url, check=CHECK_SIZE):
     path = '/'.join(name.split('/')[:-1])
 
     if not os.path.exists(path):
-        print('"%s" created' % (path))
+        log.info('"%s" created' % (path))
         os.makedirs(path)
 
     same_filesize = check_size(url, name) if check else True
 
     if not os.path.exists(name) or not same_filesize:
-        print('"%s"... ' % (name)),
         with open(name, 'wb') as f:
             f.write(s.get(url, verify=False).content)
-        print('saved')
+        log.info('"%s"... saved' % (name))
 
 
 def check_size(url, name):
@@ -107,19 +116,19 @@ if __name__ == '__main__':
         pass
 
     if USERNAME == 'esi_id' or PASSWORD == 'esi_pass':
-        print('Please enter your credentials. Quitting.')
+        log.error('Please enter your credentials. Quitting.')
         _exit()
         
     if 'check' in argv:
-        print('Checking size while downloading (slower)')
+        log.warn('Checking size while downloading (slower)')
         CHECK_SIZE = True
 
     auth = authenticate(USERNAME, PASSWORD)
     if 'user_password_incorrect' in auth.url:
-        print('Could not login, check user & password.')
+        log.error('Could not login, check user & password.')
         _exit()
 
-    print('Checking courses...')
+    log.info('Checking courses...')
     courses = get_courses()
  
     for course in courses:
@@ -127,11 +136,11 @@ if __name__ == '__main__':
         
         if 'update' in argv:
             if '-- Documents --' in str(course):
-                print('Updating files for %s' % name)
+                log.info('Updating files for %s' % name)
                 download_course(course)
 
         else:
-            print('Downloading files for %s' % name)
+            log.info('Downloading files for %s' % name)
             download_course(course)
 
     if platform == 'win32':
