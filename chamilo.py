@@ -38,7 +38,7 @@ def get_courses():
     url = '%s/%s' % (CHAMI_URL, 'user_portal.php')
 
     soup = soup_content(url)
-    courses = soup.findAll('div', attrs={'class': 'userportal-course-item'})
+    courses = soup.findAll('div', attrs={'class': 'well course-box'})
 
     return courses
 
@@ -48,9 +48,16 @@ def download_course(course_info):
     name = url.split('/')[4]
 
     soup = soup_content(url)
-    url = soup.find('a', attrs={'title': 'Documents'})
-    if url:
-        document_url = '%s%s' % (CHAMI_URL, url['href'])
+    urls = soup.findAll('a', attrs={'target': '_self'})
+    for url in urls:
+        if 'document.php' in url:
+            url = url['href']
+            break
+
+    url = url['href']
+
+    if 'document.php' in url:
+        document_url = url
         soup = BeautifulSoup(s.get(document_url, verify=False).content)
 
         folders = [x['value'] for x in soup.findAll('option')]
@@ -58,19 +65,20 @@ def download_course(course_info):
             save_folders(name, folder)
 
 
-def save_folders(name, url):
-    url = '%s/main/document/document.php?cidReq=%s&curdirpath=%s' % (CHAMI_URL, name, url)
+def save_folders(name, number):
+    url = '%s/main/document/document.php?id=%s&_qf__selector=&cidReq=%s' % (CHAMI_URL, number, name)
     soup = soup_content(url)
 
-    files = soup.findAll('a', attrs={'style': 'float:right'})
+    files = soup.findAll('a', attrs={'style': 'float:left'})
+
     for file in files:
-        url = '%s%s' % (CHAMI_URL, file['href'])
-        save_file(name, url)
+        if 'courses' in file.get('href'):
+            url = file.get('href')
+            save_file(name, url)
 
 
 def save_file(path, url, check=CHECK_SIZE):
-    name = '/'.join(url.split('%2F')[1:])
-    name = '%s/%s' % (path, name)
+    name = '/'.join(url.split('/')[4:])
     path = '/'.join(name.split('/')[:-1])
 
     if not os.path.exists(path):
@@ -88,11 +96,11 @@ def save_file(path, url, check=CHECK_SIZE):
 def check_size(url, name):
     chami_filesize = int(s.head(url, verify=False).headers['content-length'])
     local_filesize = os.path.getsize(name) if os.path.exists(name) else 0
-    
+
     # ugly hack due to false content length for empty file
     if chami_filesize == 20:
         chami_filesize = 0
-    
+
     return chami_filesize == local_filesize
 
 
@@ -118,7 +126,7 @@ if __name__ == '__main__':
     if USERNAME == 'esi_id' or PASSWORD == 'esi_pass':
         log.error('Please enter your credentials. Quitting.')
         _exit()
-        
+
     if 'check' in argv:
         log.warn('Checking size while downloading (slower)')
         CHECK_SIZE = True
@@ -130,12 +138,12 @@ if __name__ == '__main__':
 
     log.info('Checking courses...')
     courses = get_courses()
- 
+
     for course in courses:
         name = course.find('a')['href'].split('/')[4]
-        
+
         if 'update' in argv:
-            if '-- Documents --' in str(course):
+            if 'Depuis votre dernière visite' in str(course):
                 log.info('Updating files for %s' % name)
                 download_course(course)
 
@@ -145,4 +153,4 @@ if __name__ == '__main__':
 
     if platform == 'win32':
         raw_input('Press Enter to close')
- 
+
