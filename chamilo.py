@@ -50,15 +50,13 @@ def download_course(course_info):
     soup = soup_content(url)
     urls = soup.findAll('a', attrs={'target': '_self'})
     for url in urls:
-        if 'document.php' in url:
+        if 'Document' in url.text:
             url = url['href']
             break
 
-    url = url['href']
-
     if 'document.php' in url:
         document_url = url
-        soup = BeautifulSoup(s.get(document_url, verify=False).content)
+        soup = soup_content(url)
 
         folders = [x['value'] for x in soup.findAll('option')]
         for folder in folders:
@@ -78,8 +76,8 @@ def save_folders(name, number):
 
 
 def save_file(path, url, check=CHECK_SIZE):
-    name = '/'.join(url.split('/')[4:])
-    path = '/'.join(name.split('/')[:-1])
+    name = '/'.join(url.split('/')[4:]).replace('document/', '')
+    path = '/'.join(name.split('/')[:-1]).replace('document/', '')
 
     if not os.path.exists(path):
         log.info('"%s" created' % (path))
