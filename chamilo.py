@@ -67,15 +67,21 @@ def save_folders(name, number):
     url = '%s/main/document/document.php?id=%s&_qf__selector=&cidReq=%s' % (CHAMI_URL, number, name)
     soup = soup_content(url)
 
-    files = soup.findAll('a', attrs={'style': 'float:left'})
+    soup = soup.find('table')
+    prev_files = ''
+    for td in soup.findAll('tr'):
+        if soup.find('small'):
+            files = soup.find('a', attrs={'style': 'float:left'})
+            date = soup.find('small').text
 
-    for file in files:
-        if 'courses' in file.get('href'):
-            url = file.get('href')
-            save_file(name, url)
+            if files != prev_files and 'courses' in files.get('href'):
+                url = files.get('href')
+                save_file(name, url, date, CHECK_SIZE)
+
+            prev_files = files
 
 
-def save_file(path, url, check=CHECK_SIZE):
+def save_file(path, url, date, check=False):
     name = '/'.join(url.split('/')[4:]).replace('document/', '')
     path = '/'.join(name.split('/')[:-1]).replace('document/', '')
 
@@ -83,6 +89,7 @@ def save_file(path, url, check=CHECK_SIZE):
         log.info('"%s" created' % (path))
         os.makedirs(path)
 
+    name = name.split('.')[-2] + '-' + date.split()[0] + '.' + name.split('.')[-1]
     same_filesize = check_size(url, name) if check else True
 
     if not os.path.exists(name) or not same_filesize:
@@ -126,7 +133,7 @@ if __name__ == '__main__':
         _exit()
 
     if 'check' in argv:
-        log.warn('Checking size while downloading (slower)')
+        log.warn('Checking size while downloading (slower).')
         CHECK_SIZE = True
 
     auth = authenticate(USERNAME, PASSWORD)
@@ -137,10 +144,17 @@ if __name__ == '__main__':
     log.info('Checking courses...')
     courses = get_courses()
 
+    if not courses:
+        log.info('No courses found.')
+
     for course in courses:
         name = course.find('a')['href'].split('/')[4]
 
         if 'update' in argv:
+            if not 'Depuis votre dernière visite' in str(courses):
+                log.info('Nothing to do.')
+                break
+
             if 'Depuis votre dernière visite' in str(course):
                 log.info('Updating files for %s' % name)
                 download_course(course)
@@ -149,6 +163,8 @@ if __name__ == '__main__':
             log.info('Downloading files for %s' % name)
             download_course(course)
 
-    if platform == 'win32':
-        raw_input('Press Enter to close')
+    _exit()
+    # TODO: test on Windows if can be removed
+    # if platform == 'win32':
+    #     raw_input('Press Enter to close')
 
