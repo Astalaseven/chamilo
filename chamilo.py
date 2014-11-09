@@ -6,10 +6,13 @@ import logging
 import requests
 from BeautifulSoup import BeautifulSoup
 
+from fix_names import fix_folder_names
+
 USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
 CHAMI_URL = 'https://elearning.esi.heb.be'
 CHECK_SIZE = False
+DOWNLOAD_ALL = False
 
 s = requests.Session()
 
@@ -35,16 +38,20 @@ def soup_content(url):
 
 
 def get_courses():
-    url = '%s/%s' % (CHAMI_URL, 'user_portal.php')
-
-    soup = soup_content(url)
-    courses = soup.findAll('div', attrs={'class': 'well course-box'})
+    if DOWNLOAD_ALL:
+        url = '%s/%s' % (CHAMI_URL, 'main/auth/courses.php?action=display_courses&category_code=ALL&hidden_links=0')
+        soup = soup_content(url)
+        courses = [c for c in soup.findAll('a') if u'Accéder au cours' in c.text]
+    else:
+        url = '%s/%s' % (CHAMI_URL, 'user_portal.php')
+        soup = soup_content(url)
+        courses = [c.find('a') for c in soup.findAll('div', attrs={'class': 'well course-box'})]
 
     return courses
 
 
 def download_course(course_info):
-    url = course_info.find('a')['href']
+    url = course_info['href']
     name = url.split('/')[4]
 
     soup = soup_content(url)
@@ -68,13 +75,16 @@ def save_folders(name, number):
     soup = soup_content(url)
 
     soup = soup.find('table')
-    prev_files = ''
-    for td in soup.findAll('tr'):
-        if soup.find('small'):
-            files = soup.find('a', attrs={'style': 'float:left'})
-            date = soup.find('small').text
+    if not soup:
+        return
 
-            if files != prev_files and 'courses' in files.get('href'):
+    prev_files = '' # XXX: some files appear twice or more
+    for td in soup.findAll('tr'):
+        if td.find('small'):
+            files = td.find('a', attrs={'style': 'float:left'})
+            date = td.find('small').text.split()[0]
+
+            if files and files != prev_files and 'courses' in files.get('href'):
                 url = files.get('href')
                 save_file(name, url, date, CHECK_SIZE)
 
@@ -83,13 +93,15 @@ def save_folders(name, number):
 
 def save_file(path, url, date, check=False):
     name = '/'.join(url.split('/')[4:]).replace('document/', '')
-    path = '/'.join(name.split('/')[:-1]).replace('document/', '')
+    course_name = name.split('/')[0]
+    name = name.replace(course_name, fix_folder_names.get(course_name))
+    path = '/'.join(name.split('/')[:-1])
 
     if not os.path.exists(path):
         log.info('"%s" created' % (path))
         os.makedirs(path)
 
-    name = name.split('.')[-2] + '-' + date.split()[0] + '.' + name.split('.')[-1]
+    name = '.'.join(name.split('.')[:-1]) + '-' + date + '.' + name.split('.')[-1] if '.' in name else name + '-' + date
     same_filesize = check_size(url, name) if check else True
 
     if not os.path.exists(name) or not same_filesize:
@@ -141,6 +153,10 @@ if __name__ == '__main__':
         log.error('Could not login, check user & password.')
         _exit()
 
+    if 'all' in argv:
+        DOWNLOAD_ALL = True
+        log.info('Download of all courses in progress.')
+
     log.info('Checking courses...')
     courses = get_courses()
 
@@ -148,7 +164,7 @@ if __name__ == '__main__':
         log.info('No courses found.')
 
     for course in courses:
-        name = course.find('a')['href'].split('/')[4]
+        name = course['href'].split('/')[4]
 
         if 'update' in argv:
             if not 'Depuis votre dernière visite' in str(courses):
