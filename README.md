@@ -8,8 +8,8 @@ Tested on https://elearning.esi.heb.be, Chamilo platform for [ESI](http://www.he
 ## Installation
 
 ```
-pip install -r requirements # requests & BeautifulSoup
 git clone https://github.com/Astalaseven/chamilo.git
+cd chamilo && pip install -r requirements.txt
 ```
 	
 ## Usage
