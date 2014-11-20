@@ -1,3 +1,8 @@
+download_only = [
+    
+]
+
+
 fix_folder_names = {
  u'1PAS': u'1PAS',
  u'CARE': u'CARE',
@@ -63,7 +68,7 @@ fix_folder_names = {
  u'TMP34IRLI': u'2/LI',
  u'TMP34IRPRD': u'2/PRD',
  u'TMP34IWAN': u'2/WAN',
- u'TMP34LAC': u'2/LAC',
+ u'TMP34LAC': u'2/LCP',
  u'TMP34LGC': u'2/LGC',
  u'TMP34RAGR': u'2/AGR',
  u'TMP34RAIN': u'2/AIN',

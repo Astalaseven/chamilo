@@ -6,7 +6,7 @@ import logging
 import requests
 from BeautifulSoup import BeautifulSoup
 
-from fix_names import fix_folder_names
+from config import fix_folder_names, download_only
 
 USERNAME = 'esi_id'
 PASSWORD = 'esi_pass'
@@ -125,6 +125,8 @@ if __name__ == '__main__':
 
     from sys import argv, exit, platform
     import ConfigParser
+    import HTMLParser
+    h = HTMLParser.HTMLParser()
 
     def _exit():
         if platform == 'win32':
@@ -157,14 +159,24 @@ if __name__ == '__main__':
         DOWNLOAD_ALL = True
         log.info('Download of all courses in progress.')
 
+    if 'list-courses' in argv:
+        DOWNLOAD_ALL = True
+
     log.info('Checking courses...')
     courses = get_courses()
+
+    if download_only:
+        courses = [c for c in courses if c['href'].split('/')[4] in download_only]
 
     if not courses:
         log.info('No courses found.')
 
     for course in courses:
         name = course['href'].split('/')[4]
+
+        if 'list-courses' in argv:
+            print(name + ' - ' + h.unescape(course.find('img')['alt']) if course.find('img') else '[none]')
+            continue
 
         if 'update' in argv:
             if not 'Depuis votre dernière visite' in str(courses):
